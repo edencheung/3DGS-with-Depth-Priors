@@ -1,4 +1,5 @@
-# Docker setup instructions
+# Setup instructions
+Remember to clone with the `--recurse-submodules` flag
 
 See [README.upstream.md](README.upstream.md) for the original project documentation.
 
