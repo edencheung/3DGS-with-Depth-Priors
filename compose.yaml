@@ -1,0 +1,25 @@
+services:
+  dngaussian:
+    image: dngaussian:v1
+    build:
+      context: .
+      dockerfile: dockerfile
+      args:
+        CUDA_ARCH_LIST: "${CUDA_ARCH_LIST:-12.0}"
+    working_dir: /app
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./submodules/depth-anything-v2/checkpoints:/app/submodules/depth-anything-v2/checkpoints:ro
+      - cache:/root/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  cache:
+    name: dngaussian-cache

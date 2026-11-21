@@ -58,10 +58,14 @@ class ModelParams(ParamGroup):
         self.rand_pcd = False
         self.mvs_pcd = False
         self.n_sparse = -1
+        self.dav2 = False
+        self.depth_pro = False
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args):
         g = super().extract(args)
+        if getattr(g, "dav2", False) and getattr(g, "depth_pro", False):
+            raise ValueError("Choose only one depth predictor: --dav2 or --depth_pro")
         g.source_path = os.path.abspath(g.source_path)
         return g
 

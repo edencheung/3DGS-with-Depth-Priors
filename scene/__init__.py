@@ -44,7 +44,12 @@ class Scene:
         self.eval_cameras = {}
 
         if os.path.exists(os.path.join(args.source_path, "sparse")):
-            scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.images, args.dataset, args.eval, args.rand_pcd, args.mvs_pcd, N_sparse = args.n_sparse)
+            depth_folder = "depth_maps"
+            if getattr(args, "dav2", False):
+                depth_folder = "depth-maps-DAV2"
+            elif getattr(args, "depth_pro", False):
+                depth_folder = "depth-maps-DepthPro"
+            scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.images, args.dataset, args.eval, args.rand_pcd, args.mvs_pcd, N_sparse = args.n_sparse, depth_folder=depth_folder)
         elif os.path.exists(os.path.join(args.source_path, "transforms_train.json")):
             print("Found transforms_train.json file, assuming Blender data set!")
             scene_info = sceneLoadTypeCallbacks["Blender"](args.source_path, args.white_background, args.eval, args.rand_pcd, N_sparse = args.n_sparse)

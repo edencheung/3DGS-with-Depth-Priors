@@ -1,0 +1,12 @@
+[submodule "submodules/depth-anything-v2"]
+	path = submodules/depth-anything-v2
+	url = https://github.com/DepthAnything/Depth-Anything-V2.git
+[submodule "submodules/ml-depth-pro-2"]
+	path = submodules/ml-depth-pro-2
+	url = https://github.com/apple-aiml-research/ml-depth-pro-2.git
+[submodule "submodules/diff-gaussian-rasterization"]
+	path = submodules/diff-gaussian-rasterization
+	url = https://github.com/ashawkey/diff-gaussian-rasterization.git
+[submodule "submodules/simple-knn"]
+	path = submodules/simple-knn
+	url = https://gitlab.inria.fr/bkerbl/simple-knn.git

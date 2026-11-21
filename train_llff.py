@@ -46,7 +46,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     if checkpoint:
         # (model_params, first_iter) = torch.load(checkpoint)
         # gaussians.restore(model_params, opt)
-        (model_params, _) = torch.load(checkpoint)
+        (model_params, _) = torch.load(checkpoint, weights_only=False)
         gaussians.load_shape(model_params, opt)
 
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
@@ -69,13 +69,14 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         iter_start.record()
 
-        gaussians.update_learning_rate(max(iteration - opt.position_lr_start, 0))
+        gaussians.update_learning_rate(max(iteration - opt.position_lr_start, 0)) # exponentially decay only the position learning rate
 
         # Every 1000 its we increase the levels of SH up to a maximum degree
         # if iteration % 1000 == 0:
         #     gaussians.oneupSHdegree()
 
-        # Pick a random Camera
+        # Pick a random viewpoint each time for this training iteration
+        # We use all the viewpoints in a random order and repeat whent the stack is empty
         if not viewpoint_stack:
             viewpoint_stack = scene.getTrainCameras().copy()
         viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))

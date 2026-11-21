@@ -88,7 +88,7 @@ def getNerfppNorm(cam_info):
 
     return {"translate": translate, "radius": radius}
 
-def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
+def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, depth_folder="depth_maps", load_depth=True):
     cam_infos = []
     for idx, key in enumerate(cam_extrinsics):
         sys.stdout.write('\r')
@@ -123,8 +123,8 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
 
         # monocular depth
         ## (fix path)
-        depth_mono_path = os.path.join('/'.join(images_folder.split("/")[:-1]), 'depth_maps', 'depth_' + os.path.basename(extr.name).split(".")[0] + '.png')
-        depth_mono = Image.open(depth_mono_path)
+        depth_mono_path = os.path.join(os.path.dirname(images_folder), depth_folder, 'depth_' + os.path.basename(extr.name).split(".")[0] + '.png')
+        depth_mono = Image.open(depth_mono_path) if load_depth else None
 
         cam_info = CameraInfo(uid=image_path, R=R, T=T, FovY=FovY, FovX=FovX, image=image, depth_mono=depth_mono,
                               image_path=image_path, image_name=image_name, width=width, height=height)
@@ -157,7 +157,7 @@ def storePly(path, xyz, rgb):
     ply_data = PlyData([vertex_element])
     ply_data.write(path)
 
-def readColmapSceneInfo(path, images, dataset, eval, rand_pcd, mvs_pcd, llffhold=8, N_sparse=-1):
+def readColmapSceneInfo(path, images, dataset, eval, rand_pcd, mvs_pcd, llffhold=8, N_sparse=-1, depth_folder="depth_maps"):
     try:
         cameras_extrinsic_file = os.path.join(path, "sparse/0", "images.bin")
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.bin")
@@ -171,7 +171,7 @@ def readColmapSceneInfo(path, images, dataset, eval, rand_pcd, mvs_pcd, llffhold
     # print(cam_intrinsics)
 
     reading_dir = "images" if images == None else images
-    cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
+    cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir), depth_folder=depth_folder, load_depth=False)
     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
 
     if eval:
@@ -185,7 +185,7 @@ def readColmapSceneInfo(path, images, dataset, eval, rand_pcd, mvs_pcd, llffhold
                 idx_train = [round(i) for i in idx_train]
                 idx_test = [i for i in idx if i not in idx_train] 
                 train_cam_infos = [c for idx, c in enumerate(train_cam_infos) if idx in idx_train]
-                test_cam_infos = [c for idx, c in enumerate(cam_infos) if idx in idx_test] + eval_cam_infos
+                test_cam_infos = [c for idx, c in enumerate(train_cam_infos) if idx in idx_test] + eval_cam_infos
 
                 # print('train', idx_train)
                 # print('test', train_cam_infos)
@@ -208,6 +208,11 @@ def readColmapSceneInfo(path, images, dataset, eval, rand_pcd, mvs_pcd, llffhold
         test_cam_infos = []
         eval_cam_infos = []
 
+    # Only training views need depth supervision; held-out views use RGB metrics.
+    train_cam_infos = [
+        c._replace(depth_mono=Image.open(os.path.join(path, depth_folder, 'depth_' + c.image_name + '.png')))
+        for c in train_cam_infos
+    ]
     print('train', [info.image_path for info in train_cam_infos])
     print('eval', [info.image_path for info in eval_cam_infos])
 
