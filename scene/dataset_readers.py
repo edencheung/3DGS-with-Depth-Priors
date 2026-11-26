@@ -184,8 +184,8 @@ def readColmapSceneInfo(path, images, dataset, eval, rand_pcd, mvs_pcd, llffhold
                 idx_train = np.linspace(0, len(train_cam_infos) - 1, N_sparse)
                 idx_train = [round(i) for i in idx_train]
                 idx_test = [i for i in idx if i not in idx_train] 
-                train_cam_infos = [c for idx, c in enumerate(train_cam_infos) if idx in idx_train]
                 test_cam_infos = [c for idx, c in enumerate(train_cam_infos) if idx in idx_test] + eval_cam_infos
+                train_cam_infos = [c for idx, c in enumerate(train_cam_infos) if idx in idx_train]
 
                 # print('train', idx_train)
                 # print('test', train_cam_infos)
