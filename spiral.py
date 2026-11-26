@@ -120,14 +120,22 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         depth_est = torch.as_tensor(depth_est).permute(2,0,1)
         torchvision.utils.save_image(depth_est, os.path.join(render_path, 'cdepth_{0:05d}'.format(idx) + ".png"))
 
-    os.system(f"ffmpeg -i " + render_path + f"/%5d.png -q 2 " + model_path + "/out_{}.mp4 -y".format(model_path.split('/')[-1]))
-    os.system(f"ffmpeg -i " + render_path + f"/depth_%5d.png -q 2 " + model_path + "/out_depth_{}.mp4 -y".format(model_path.split('/')[-1]))
-    os.system(f"ffmpeg -i " + render_path + f"/cdepth_%5d.png -q 2 " + model_path + "/out_cdepth_{}.mp4 -y".format(model_path.split('/')[-1]))
+    # model_name = model_path.split('/')[-1]
+    save_path = os.path.join(model_path, "checkpoint_views", f"iter_{iteration}")
+    os.makedirs(save_path, exist_ok = True)
+
+    os.system(f"ffmpeg -i " + render_path + f"/%5d.png -q 2 " + save_path + "/out.mp4 -y")
+    os.system(f"ffmpeg -i " + render_path + f"/depth_%5d.png -q 2 " + save_path + "/out_depth.mp4 -y")
+    os.system(f"ffmpeg -i " + render_path + f"/cdepth_%5d.png -q 2 " + save_path + "/out_cdepth.mp4 -y")
 
 def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, near):
+
+    # Modified to load the correct iteration
+    checkpoint_path = "chkpnt_latest.pth" if iteration == -1 else f"chkpnt{iteration}.pth"
+   
     with torch.no_grad():
         gaussians = GaussianModel(dataset.sh_degree)
-        (model_params, _) = torch.load(os.path.join(dataset.model_path, "chkpnt_latest.pth"), weights_only=False)
+        (model_params, _) = torch.load(os.path.join(dataset.model_path, checkpoint_path), weights_only=False)
         gaussians.restore(model_params)
         gaussians.neural_renderer.keep_sigma=True
 

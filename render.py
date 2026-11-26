@@ -129,9 +129,13 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
 
 
 def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, skip_train : bool, skip_test : bool, near : int):
+    
+    # Load the correct checkpoint for that iteration
+    checkpoint_path = "chkpnt_latest.pth" if iteration == -1 else f"chkpnt{iteration}.pth"
+
     with torch.no_grad():
         gaussians = GaussianModel(dataset.sh_degree)
-        (model_params, _) = torch.load(os.path.join(dataset.model_path, "chkpnt_latest.pth"), weights_only=False)
+        (model_params, _) = torch.load(os.path.join(dataset.model_path, checkpoint_path), weights_only=False)
         gaussians.restore(model_params)
         gaussians.neural_renderer.keep_sigma=True
 

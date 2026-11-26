@@ -92,11 +92,15 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             pipe.debug = True
 
         # -------------------------------------------------- DEPTH --------------------------------------------
+        # Disabled Hard Depth Regularisation
+
+        # To disable, set condition to "if False" or "if False and iteration ..."
         if iteration > opt.hard_depth_start:
             render_pkg = render_for_depth(viewpoint_cam, gaussians, pipe, background)
             depth = render_pkg["depth"]
 
             # Depth loss
+            
             loss_hard = 0
             depth_mono = 255.0 - viewpoint_cam.depth_mono
 
@@ -116,8 +120,12 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if iteration < opt.iterations:
                 gaussians.optimizer.step()
                 gaussians.optimizer.zero_grad(set_to_none = True)
-
+        
         # -------------------------------------------------- pnt --------------------------------------------
+        
+        # Disabled Soft Depth Regularisation
+
+        # To disable, set condition to "if False" or "if False and iteration ..."
         if iteration > opt.soft_depth_start :
             render_pkg = render_for_opa(viewpoint_cam, gaussians, pipe, background)
             viewspace_point_tensor, visibility_filter = render_pkg["viewspace_points"], render_pkg["visibility_filter"]

@@ -21,3 +21,7 @@ data/dtu/*
 data/llff/*
 data/nerf_synthetic/*
 !*.gitkeep
+
+
+# New scripts
+setup.sh
