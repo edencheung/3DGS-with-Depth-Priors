@@ -8,9 +8,7 @@ services:
         CUDA_ARCH_LIST: "${CUDA_ARCH_LIST:-12.0}"
     working_dir: /app
     volumes:
-      - ./data:/app/data
-      - ./output:/app/output
-      - ./submodules/depth-anything-v2/checkpoints:/app/submodules/depth-anything-v2/checkpoints:ro
+      - .:/app
       - cache:/root/.cache
     deploy:
       resources:

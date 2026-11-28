@@ -92,6 +92,11 @@ def patch_norm_mse_loss_global(input, target, patch_size, margin, return_mask=Fa
     target_patches = normalize(patchify(target, patch_size), std = target.std().detach())
     return margin_l2_loss(input_patches, target_patches, margin, return_mask)
 
+def patch_mean_mse_loss_global(input, target, patch_size, margin, return_mask=False):
+    input_patch_means = normalize(patchify(input,patch_size).mean(dim=1)[None,...], std = input.std().detach())
+    target_patch_means = normalize(patchify(target,patch_size).mean(dim=1)[None,...], std = target.std().detach())
+    return margin_l2_loss(input_patch_means, target_patch_means, margin, return_mask)
+
 def patch_norm_l1_loss_global(input, target, patch_size, margin, return_mask=False):
     input_patches = normalize(patchify(input, patch_size), std = input.std().detach())
     target_patches = normalize(patchify(target, patch_size), std = target.std().detach())

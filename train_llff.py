@@ -16,7 +16,8 @@ import torchvision
 from os import makedirs
 from random import randint
 from utils.graphics_utils import fov2focal
-from utils.loss_utils import l1_loss, loss_depth_smoothness, patch_norm_mse_loss, patch_norm_mse_loss_global, ssim
+from utils.loss_utils import l1_loss, loss_depth_smoothness, patch_norm_mse_loss, patch_norm_mse_loss_global, patch_mean_mse_loss_global, ssim
+from utils.free_space import build_aligned_priors, free_space_loss, aligned_depth_loss
 # from utils.loss_utils import mssim as ssim
 from gaussian_renderer import render, render_for_depth, render_for_opa  # , network_gui
 import sys
@@ -41,6 +42,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     tb_writer = prepare_output_and_logger(dataset, opt)
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians)
+    priors = None
+    if opt.free_space_weight > 0 or opt.aligned_depth_weight > 0:
+        priors = build_aligned_priors(
+            scene.getTrainCameras(), opt.triangulated_dir
+        )
     scene_sprical = RenderScene(dataset, gaussians, spiral=True)
     gaussians.training_setup(opt)
     if checkpoint:
@@ -114,6 +120,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             loss_global = patch_norm_mse_loss_global(depth[None,...], depth_mono[None,...], randint(patch_range[0], patch_range[1]), opt.error_tolerance)
             loss_hard += 1 * loss_global
 
+            # loss_patch_mean = patch_mean_mse_loss_global(depth[None,...], depth_mono[None,...], randint(patch_range[0], patch_range[1]), opt.error_tolerance)
+            # loss_hard += 0.1 * loss_patch_mean
+
             loss_hard.backward()
 
             # Optimizer step
@@ -144,6 +153,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             loss_global = patch_norm_mse_loss_global(depth[None,...], depth_mono[None,...], randint(patch_range[0], patch_range[1]), opt.error_tolerance)
             loss_pnt += 1 * loss_global
 
+            # loss_patch_mean = patch_mean_mse_loss_global(depth[None,...], depth_mono[None,...], randint(patch_range[0], patch_range[1]), opt.error_tolerance)
+            # loss_pnt += 0.1 * loss_patch_mean
+
             loss_pnt.backward()
 
             # Optimizer step
@@ -172,6 +184,16 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         loss_reg += opt.shape_pena*shape_pena + opt.scale_pena*scale_pena + opt.opa_pena*opa_pena
         loss += loss_reg
+
+        if opt.free_space_weight > 0 and iteration > 500:
+            ramp = min(1.0, (iteration - 500) / 500)
+            penalty = free_space_loss(viewpoint_cam, gaussians.get_xyz, opacity, priors)
+            loss += opt.free_space_weight * ramp * penalty
+
+        if opt.aligned_depth_weight > 0 and iteration > 1000:
+            ramp = min(1.0, (iteration - 1000) / 700)
+            penalty = aligned_depth_loss(viewpoint_cam, render_pkg, priors)
+            loss += opt.aligned_depth_weight * ramp * penalty
 
         loss.backward()
         
@@ -395,6 +417,12 @@ if __name__ == "__main__":
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--near", type=int, default=0)
     args = parser.parse_args(sys.argv[1:])
+    if (args.free_space_weight > 0 or args.aligned_depth_weight > 0) and not args.triangulated_dir:
+        if not args.source_path or args.n_sparse < 1:
+            parser.error("Pass --source_path and a positive --n_sparse, or specify --triangulated_dir")
+        args.triangulated_dir = os.path.join(
+            os.path.abspath(args.source_path), f"{args.n_sparse}_views", "triangulated"
+        )
     args.save_iterations.append(args.iterations)
     # args.checkpoint_iterations.append(args.iterations)
     

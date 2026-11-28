@@ -1,6 +1,6 @@
 dataset=$1 
 workspace=$2 
-nviews="$NVIEWS"
+nviews="${NVIEWS:-3}"
 export CUDA_VISIBLE_DEVICES=$3
 
 

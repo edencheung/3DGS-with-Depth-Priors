@@ -18,6 +18,8 @@ from scene.gaussian_model import GaussianModel
 from scene.gaussian_model_sh import GaussianModelSH
 from arguments import ModelParams
 from utils.camera_utils import cameraList_from_camInfos, camera_to_JSON, renderCameraList_from_camInfos
+from pathlib import Path
+from scripts.convert_ply_for_supersplat import convert
 
 class Scene:
 
@@ -100,6 +102,8 @@ class Scene:
         self.gaussians.save_ply(os.path.join(point_cloud_path, "point_cloud.ply"))
         if color is not None:
             self.gaussians.save_ply_color(os.path.join(point_cloud_path, "point_cloud_color.ply"), color)
+            folder = Path(point_cloud_path)
+            convert(folder / "point_cloud_color.ply", folder / "point_cloud_supersplat.ply")
 
     def getTrainCameras(self, scale=1.0):
         return self.train_cameras[scale]

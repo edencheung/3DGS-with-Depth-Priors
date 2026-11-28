@@ -45,6 +45,16 @@ docker compose run --rm dngaussian python scripts/generate_dav2_depth.py
 
 Output: `data/llff/<scene>/depth-maps-DAV2/`.
 
+## Prepare COLMAP triangulation
+
+From `MVPProj`, run this in Windows Command Prompt to triangulate Fern's three training views with their supplied camera poses.
+
+```bash
+python scripts/triangulate_llff.py data/llff/fern data/llff/fern/3_views --colmap .\colmap-x64-windows-cuda\bin\colmap.exe
+```
+
+The model is saved in `DNGaussian/data/llff/fern/3_views/triangulated`.
+
 ## Train and evaluate
 
 Generate the corresponding depth maps first. Train fern with either predictor:
@@ -64,7 +74,7 @@ You can use this to run default MiDaS DPT for all scenes:
 ```bash
 for scene in fern flower fortress horns leaves orchids room trex; do
   docker compose run --rm dngaussian bash scripts/run_llff.sh \
-    "data/llff/$scene" "output/llff/$scene/<default|dav2>" 0 || break 2
+    "data/llff/$scene" "output/llff/$scene/<default|dav2>" 0 (--dav2) || break 2
 done
 ```
 

@@ -12,8 +12,6 @@ RUN python -m pip install --no-cache-dir \
   matplotlib==3.10.9 \
   ninja==1.13.2 \
   setuptools==80.10.2
-WORKDIR /app
-COPY . .
 RUN apt-get update && apt-get install -y --no-install-recommends \
   build-essential \
   ffmpeg \
@@ -25,8 +23,13 @@ ARG CUDA_ARCH_LIST="12.0"
 ENV TORCH_CUDA_ARCH_LIST=${CUDA_ARCH_LIST} \
   CUDA_HOME=/usr/local/cuda \
   MAX_JOBS=2
+COPY gridencoder /opt/dngaussian-extensions/gridencoder
+COPY shencoder /opt/dngaussian-extensions/shencoder
+COPY submodules/diff-gaussian-rasterization /opt/dngaussian-extensions/diff-gaussian-rasterization
+COPY submodules/simple-knn /opt/dngaussian-extensions/simple-knn
 RUN python -m pip install --no-cache-dir --no-build-isolation \
-    ./gridencoder \
-    ./shencoder \
-    ./submodules/diff-gaussian-rasterization \
-    ./submodules/simple-knn
+    /opt/dngaussian-extensions/gridencoder \
+    /opt/dngaussian-extensions/shencoder \
+    /opt/dngaussian-extensions/diff-gaussian-rasterization \
+    /opt/dngaussian-extensions/simple-knn
+WORKDIR /app

@@ -97,6 +97,9 @@ class OptimizationParams(ParamGroup):
         self.split_opacity_thresh = 0.1
         self.soft_depth_start = 1000
         self.hard_depth_start = 0
+        self.triangulated_dir = ""
+        self.free_space_weight = 0.0
+        self.aligned_depth_weight = 0.0
 
         self.shape_pena = 0.001
         self.scale_pena = 0.001

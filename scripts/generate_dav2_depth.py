@@ -1,4 +1,3 @@
-"""Generate LLFF DAV2 maps using the same storage convention as the MiDaS maps."""
 import argparse
 from pathlib import Path
 import sys

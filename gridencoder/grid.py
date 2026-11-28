@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Function
 from torch.autograd.function import once_differentiable
-from torch.cuda.amp import custom_bwd, custom_fwd 
+from torch.amp import custom_bwd, custom_fwd 
 
 try:
     import _gridencoder as _backend
@@ -23,7 +23,7 @@ _interp_to_id = {
 
 class _grid_encode(Function):
     @staticmethod
-    @custom_fwd
+    @custom_fwd(device_type='cuda')
     def forward(ctx, inputs, embeddings, offsets, per_level_scale, base_resolution, calc_grad_inputs=False, gridtype=0, align_corners=False, interpolation=0):
         # inputs: [B, D], float in [0, 1]
         # embeddings: [sO, C], float
@@ -64,7 +64,7 @@ class _grid_encode(Function):
     
     @staticmethod
     #@once_differentiable
-    @custom_bwd
+    @custom_bwd(device_type='cuda')
     def backward(ctx, grad):
 
         inputs, embeddings, offsets, dy_dx = ctx.saved_tensors

@@ -1,7 +1,3 @@
-"""Export Apple Depth Pro 2 inverse-depth maps for LLFF training.
-
-Run in the Depth Pro 2 environment, not dngaussian-modern.
-"""
 import argparse
 from pathlib import Path
 import sys
